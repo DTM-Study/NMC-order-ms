@@ -9,8 +9,8 @@ export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @MessagePattern('createOrder')
-  create(@Payload() createOrderDto: CreateOrderDto) {
-    return this.orderService.create(createOrderDto);
+  async create(@Payload() createOrderDto: CreateOrderDto) {
+    return await   this.orderService.create(createOrderDto);
   }
 
   @MessagePattern('findAllOrders')

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { OrderModule } from './order/order.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { envs } from './config';
+import { Order } from './order/entities/order.entity';
 
 @Module({
   imports: [
@@ -12,7 +13,7 @@ import { envs } from './config';
       username: envs.DB_USER,
       password: envs.DB_PASS,
       database: envs.DB_NAME,
-      entities: [],
+      entities: [Order],
       synchronize: true,
     }), OrderModule],
 })
