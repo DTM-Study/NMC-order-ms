@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order } from './entities/order.entity';
 import { RpcException } from '@nestjs/microservices';
+import { filtersOrdersDto } from './dto/filters-order.dto';
 
 @Injectable()
 export class OrderService {
@@ -26,15 +27,31 @@ export class OrderService {
 
 
 
-  async findAll() {
-    const oders = await this.dbOrder.find();
-    if (oders.length === 0) {
+  async findAll(filters: filtersOrdersDto) {
+    const total = await this.dbOrder.count({
+      where:{
+        status: filters.status
+      }
+    });
+    const pages = Math.ceil(total / filters.limit);
+    
+    
+    const orders = await this.dbOrder.find({
+      skip: (filters.page -1 )  *  filters.limit,
+      take: filters.limit,
+      where:{
+        status: filters.status
+      }
+    });
+
+    if (orders.length === 0) {
       throw new RpcException({ status: 204, message: "No hay ordenes" });
     }
-    return oders;
+
+    return { data: orders, metadata: { total, pages, page: filters.page } };
   }
 
-  async findOne(id: number) {
+  async  findOne(id: number) {
     const order = await this.dbOrder.findOne({
       where: { id:id},
     });
