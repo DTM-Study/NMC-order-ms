@@ -4,7 +4,7 @@ import *  as joi from 'joi'
 
 
 interface EnvsVars {
-    PORT: number;
+    NATS_HOSTS: string[];
     DB_HOST: string;
     DB_PORT: number;
     DB_USER: string;
@@ -13,7 +13,7 @@ interface EnvsVars {
 } 
 
 const envSchema = joi.object({
-    PORT: joi.number().required(),
+    NATS_HOSTS: joi.array().items(joi.string()).required(),
     DB_HOST: joi.string().required(),
     DB_PORT: joi.number().required(),
     DB_USER: joi.string().required(),
@@ -22,14 +22,18 @@ const envSchema = joi.object({
 }).unknown(true);
 ;
 
-const { error, value } = envSchema.validate(process.env);
+const { error, value } = envSchema.validate({
+    ...process.env, 
+    NATS_HOSTS: process.env.NATS_HOSTS.split(','),
+
+});
 
 if(error) {
     throw new Error(`Config validation error: ${error.message}`);
 }
 
 export const envs: EnvsVars = { 
-    PORT: value.PORT, 
+    NATS_HOSTS: value.NATS_HOSTS,
     DB_HOST: value.DB_HOST, 
     DB_PORT: value.DB_PORT, 
     DB_USER: value.DB_USER, 

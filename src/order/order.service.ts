@@ -29,17 +29,17 @@ export class OrderService {
 
   async findAll(filters: filtersOrdersDto) {
     const total = await this.dbOrder.count({
-      where:{
+      where: {
         status: filters.status
       }
     });
     const pages = Math.ceil(total / filters.limit);
-    
-    
+
+
     const orders = await this.dbOrder.find({
-      skip: (filters.page -1 )  *  filters.limit,
+      skip: (filters.page - 1) * filters.limit,
       take: filters.limit,
-      where:{
+      where: {
         status: filters.status
       }
     });
@@ -51,14 +51,38 @@ export class OrderService {
     return { data: orders, metadata: { total, pages, page: filters.page } };
   }
 
-  async  findOne(id: number) {
+  async findOne(id: number) {
     const order = await this.dbOrder.findOne({
-      where: { id:id},
+      where: { id: id },
     });
     if (!order) {
       throw new RpcException({ status: 404, message: "No existe la orden con id " + id });
     }
     return order;
+  }
+
+  async changeOrderStatus(body: UpdateOrderDto) {
+    const order = await this.dbOrder.findOne({
+      where: { id: body.id },
+    });
+    if (!order) {
+      throw new RpcException({ status: 404, message: "No existe la orden con id " + body.id });
+    }
+    
+    if (body.status === order.status) {
+      return { message: "Orden modificada", id: order.id };
+    }
+
+    order.status = body.status;
+    try {
+      await this.dbOrder.save(order);
+    } catch (err) {
+      const logger = new Logger('OrderMS');
+      logger.error(err);
+      throw new RpcException({ status: 500, message: "DB_Error" });
+    }
+
+    return { message: "Orden modificada", id: order.id };
   }
 
 
